@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Krypto Risikomanagement Tool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { background: #121212; color: #f0f0f0; font-family: Arial, sans-serif; padding: 2rem; }
+    select, input, button {
+      padding: 0.5rem; font-size: 1rem; background-color: #1e1e1e; color: white;
+      border: 1px solid #444; border-radius: 4px; margin-bottom: 0.5rem; width: 100%;
+    }
+    .section { margin-top: 2rem; }
+    .block { background: #1b1b1b; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; }
+    iframe { border: none; width: 100%; height: 600px; }
+    .results span { display: block; margin: 0.2rem 0; }
+    h2 img { margin-left: 0.5rem; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <h2 id="title">Krypto Risikomanagement Tool <img id="coinLogo" src="" style="width: 24px;"></h2>
+
+  <div class="section block">
+    <label for="symbol" id="labelSymbol">Wähle Coin:</label>
+    <select id="symbol" onchange="updateCoinInfo()">
+      <!-- Optionen werden dynamisch geladen -->
+    </select>
+  </div>
+
+  <div class="section block">
+    <strong>Performance:</strong><br>
+    <div id="priceNow" style="margin-bottom: 0.5rem;"></div>
+    <div id="performanceData">
+      <div id="perf_1h"></div>
+      <div id="perf_24h"></div>
+      <div id="perf_7d"></div>
+      <div id="perf_14d"></div>
+      <div id="perf_30d"></div>
+      <div id="perf_1y"></div>
+    </div>
+  </div>
+
+  <div class="section block">
+    <h3>Risikomanagement</h3>
+    <label>Entry-Preis: <input type="number" id="entryPrice" /></label>
+    <label>Kapital (USDT): <input type="number" id="capital" /></label>
+    <label>Risiko %: <input type="number" id="riskPercent" /></label>
+    <label>Leverage: <input type="number" id="leverage" value="1" /></label>
+    <label>Richtung:
+      <select id="direction">
+        <option value="Long">Long</option>
+        <option value="Short">Short</option>
+      </select>
+    </label>
+    <button onclick="calculateRisk()">Berechnen</button>
+    <div class="results">
+      <span>Risiko Betrag: <strong id="riskAmount"></strong></span>
+      <span>Position (USDT): <strong id="positionSize"></strong></span>
+      <span>Kaufmenge: <strong id="coinAmount"></strong></span>
+      <span>Stop-Loss Preis: <strong id="stopLoss"></strong></span>
+      <span>SL-Abstand zum Entry (%): <strong id="slDistance"></strong></span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>BingX Futures</h3>
+    <iframe id="bingxChart"></iframe>
+  </div>
+
+  <div style="position: fixed; bottom: 1rem; right: 1rem; font-size: 0.9rem; color: #888;">
+    Autor: Ergün Ö.
+  </div>
+
+  <script>
+    async function loadCoins() {
+      try {
+        const response = await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1");
+        const coins = await response.json();
+        const select = document.getElementById("symbol");
+        coins.forEach(coin => {
+          const option = document.createElement("option");
+          option.value = coin.symbol.toUpperCase() + "USDT";
+          option.setAttribute("data-coingecko", coin.id);
+          option.textContent = coin.symbol.toUpperCase() + " - " + coin.name;
+          select.appendChild(option);
+        });
+        if (select.options.length > 0) {
+          select.selectedIndex = 0;
+          updateCoinInfo();
+        }
+      } catch (error) {
+        console.error("Fehler beim Laden der Coins:", error);
+      }
+    }
+
+    function updatePerformance(id, value, label) {
+      const el = document.getElementById(id);
+      const percent = parseFloat(value);
+      const direction = percent > 0 ? '⬆' : percent < 0 ? '⬇' : '-';
+      const color = percent > 0 ? 'limegreen' : percent < 0 ? 'orangered' : 'gray';
+      el.innerHTML = `${label}: <span style="color:${color}">${direction} ${percent.toFixed(2)}%</span>`;
+    }
+
+    async function updateCoinInfo() {
+      const sel = document.getElementById("symbol");
+      const coingeckoId = sel.options[sel.selectedIndex].getAttribute("data-coingecko");
+      const logoEl = document.getElementById("coinLogo");
+
+      try {
+        const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coingeckoId}?localization=false&tickers=false&market_data=true`);
+        const data = await res.json();
+        logoEl.src = data.image.thumb;
+        const price = data.market_data.current_price.usd;
+        document.getElementById("priceNow").innerHTML = `<strong>Aktueller Preis:</strong> $${price.toFixed(2)}`;
+        updatePerformance("perf_1h", data.market_data.price_change_percentage_1h_in_currency.usd, "1 Stunde");
+        updatePerformance("perf_24h", data.market_data.price_change_percentage_24h_in_currency.usd, "24 Stunden");
+        updatePerformance("perf_7d", data.market_data.price_change_percentage_7d_in_currency.usd, "7 Tage");
+        updatePerformance("perf_14d", data.market_data.price_change_percentage_14d_in_currency.usd, "14 Tage");
+        updatePerformance("perf_30d", data.market_data.price_change_percentage_30d_in_currency.usd, "1 Monat");
+        updatePerformance("perf_1y", data.market_data.price_change_percentage_1y_in_currency.usd, "1 Jahr");
+        document.getElementById("bingxChart").src = `https://www.tradingview.com/widgetembed/?symbol=BINGX:${sel.value}.P&interval=60&theme=dark&style=1&locale=de`;
+      } catch (err) {
+        console.error("Fehler beim Laden der Coin-Daten:", err);
+      }
+    }
+
+    function calculateRisk() {
+      const entry = parseFloat(document.getElementById("entryPrice")?.value);
+      const capital = parseFloat(document.getElementById("capital")?.value);
+      const riskPercent = parseFloat(document.getElementById("riskPercent")?.value);
+      const leverage = parseFloat(document.getElementById("leverage")?.value);
+      const direction = document.getElementById("direction")?.value;
+      if (!entry || !capital || !riskPercent || !leverage) return;
+      const riskAmount = capital * (riskPercent / 100);
+      const positionSize = capital * leverage;
+      const slPercent = riskAmount / positionSize;
+      const slPrice = direction === "Long" ? entry * (1 - slPercent) : entry * (1 + slPercent);
+      const coinAmount = positionSize / entry;
+      const slDistance = ((direction === "Long" ? (entry - slPrice) : (slPrice - entry)) / entry) * 100;
+
+      document.getElementById("riskAmount").innerText = "$" + riskAmount.toFixed(2);
+      document.getElementById("positionSize").innerText = "$" + positionSize.toFixed(2);
+      document.getElementById("coinAmount").innerText = coinAmount.toFixed(4);
+      document.getElementById("stopLoss").innerText = slPrice.toFixed(4);
+      document.getElementById("slDistance").innerText = slDistance.toFixed(2) + "%";
+    }
+
+    window.onload = loadCoins;
+  </script>
+</body>
+</html>
