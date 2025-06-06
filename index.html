@@ -25,6 +25,16 @@
     <select id="symbol" onchange="updateCoinInfo()">
       <option value="BTCUSDT" data-coingecko="bitcoin">BTC - Bitcoin</option>
       <option value="ETHUSDT" data-coingecko="ethereum">ETH - Ethereum</option>
+      <option value="AVAXUSDT" data-coingecko="avalanche-2">AVAX - Avalanche</option>
+      <option value="SOLUSDT" data-coingecko="solana">SOL - Solana</option>
+      <option value="XRPUSDT" data-coingecko="ripple">XRP - Ripple</option>
+      <option value="DOTUSDT" data-coingecko="polkadot">DOT - Polkadot</option>
+      <option value="LINKUSDT" data-coingecko="chainlink">LINK - Chainlink</option>
+      <option value="LTCUSDT" data-coingecko="litecoin">LTC - Litecoin</option>
+      <option value="ADAUSDT" data-coingecko="cardano">ADA - Cardano</option>
+      <option value="DOGEUSDT" data-coingecko="dogecoin">DOGE - Dogecoin</option>
+      <option value="MATICUSDT" data-coingecko="matic-network">MATIC - Polygon</option>
+      <option value="NEARUSDT" data-coingecko="near">NEAR - Near Protocol</option>
     </select>
   </div>
 
@@ -90,6 +100,7 @@
         const el = document.getElementById(key);
         if (el) el.innerText = t[key];
       }
+      updateCoinInfo(); // aktualisiere Text der Preisüberschrift
     }
 
     function updatePerformance(id, value, label) {
@@ -104,23 +115,24 @@
       const sel = document.getElementById("symbol");
       const coingeckoId = sel.options[sel.selectedIndex].getAttribute("data-coingecko");
       const logoEl = document.getElementById("coinLogo");
-      const url = `https://api.coingecko.com/api/v3/coins/${coingeckoId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
+      const lang = document.getElementById("langSelect").value;
+      const labelPerformance = translations[lang].labelPerformance;
 
       try {
-        const res = await fetch(url);
+        const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coingeckoId}?localization=false&tickers=false&market_data=true`);
         const data = await res.json();
         logoEl.src = data.image.thumb;
         const price = data.market_data.current_price.usd;
-        document.getElementById("priceNow").innerHTML = `<strong>Aktueller Preis:</strong> $${price.toFixed(2)}`;
-        updatePerformance("perf_1h", data.market_data.price_change_percentage_1h_in_currency.usd || 0, '1 Stunde');
-        updatePerformance("perf_24h", data.market_data.price_change_percentage_24h_in_currency.usd || 0, '24 Stunden');
-        updatePerformance("perf_7d", data.market_data.price_change_percentage_7d_in_currency.usd || 0, '7 Tage');
-        updatePerformance("perf_14d", data.market_data.price_change_percentage_14d_in_currency?.usd || 0, '14 Tage');
-        updatePerformance("perf_30d", data.market_data.price_change_percentage_30d_in_currency.usd || 0, '1 Monat');
-        updatePerformance("perf_1y", data.market_data.price_change_percentage_1y_in_currency.usd || 0, '1 Jahr');
+        document.getElementById("priceNow").innerHTML = `<strong>${labelPerformance}</strong> $${price.toFixed(2)}`;
+        updatePerformance("perf_1h", data.market_data.price_change_percentage_1h_in_currency.usd, "1 Stunde");
+        updatePerformance("perf_24h", data.market_data.price_change_percentage_24h_in_currency.usd, "24 Stunden");
+        updatePerformance("perf_7d", data.market_data.price_change_percentage_7d_in_currency.usd, "7 Tage");
+        updatePerformance("perf_14d", data.market_data.price_change_percentage_14d_in_currency.usd, "14 Tage");
+        updatePerformance("perf_30d", data.market_data.price_change_percentage_30d_in_currency.usd, "1 Monat");
+        updatePerformance("perf_1y", data.market_data.price_change_percentage_1y_in_currency.usd, "1 Jahr");
         document.getElementById("bingxChart").src = `https://www.tradingview.com/widgetembed/?symbol=BINGX:${sel.value}.P&interval=60&theme=dark&style=1&locale=de`;
       } catch (err) {
-        console.error("Fehler beim Laden der Daten:", err);
+        console.error("Fehler beim Laden:", err);
       }
     }
 
