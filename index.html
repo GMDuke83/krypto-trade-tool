@@ -18,36 +18,18 @@
   </style>
 </head>
 <body>
-  <h2>Krypto Risikomanagement Tool <img id="coinLogo" src="" style="width: 24px;"></h2>
+  <h2 id="title">Krypto Risikomanagement Tool <img id="coinLogo" src="" style="width: 24px;"></h2>
 
   <div class="section block">
-    <label for="symbol">Wähle Coin:</label>
+    <label for="symbol" id="labelSymbol">Wähle Coin:</label>
     <select id="symbol" onchange="updateCoinInfo()">
       <option value="BTCUSDT" data-coingecko="bitcoin">BTC - Bitcoin</option>
       <option value="ETHUSDT" data-coingecko="ethereum">ETH - Ethereum</option>
-      <option value="AVAXUSDT" data-coingecko="avalanche-2">AVAX - Avalanche</option>
-      <option value="SOLUSDT" data-coingecko="solana">SOL - Solana</option>
-      <option value="XRPUSDT" data-coingecko="ripple">XRP - Ripple</option>
-      <option value="ADAUSDT" data-coingecko="cardano">ADA - Cardano</option>
-      <option value="DOGEUSDT" data-coingecko="dogecoin">DOGE - Dogecoin</option>
-      <option value="BNBUSDT" data-coingecko="binancecoin">BNB - Binance Coin</option>
-      <option value="MATICUSDT" data-coingecko="matic-network">MATIC - Polygon</option>
-      <option value="DOTUSDT" data-coingecko="polkadot">DOT - Polkadot</option>
-      <option value="LINKUSDT" data-coingecko="chainlink">LINK - Chainlink</option>
-      <option value="LTCUSDT" data-coingecko="litecoin">LTC - Litecoin</option>
-      <option value="ATOMUSDT" data-coingecko="cosmos">ATOM - Cosmos</option>
-      <option value="NEARUSDT" data-coingecko="near">NEAR - Near Protocol</option>
-      <option value="ARBUSDT" data-coingecko="arbitrum">ARB - Arbitrum</option>
-      <option value="OPUSDT" data-coingecko="optimism">OP - Optimism</option>
-      <option value="INJUSDT" data-coingecko="injective-protocol">INJ - Injective</option>
-      <option value="HBARUSDT" data-coingecko="hedera-hashgraph">HBAR - Hedera</option>
-      <option value="APTUSDT" data-coingecko="aptos">APT - Aptos</option>
-      <option value="FTMUSDT" data-coingecko="fantom">FTM - Fantom</option>
     </select>
   </div>
 
   <div class="section block">
-    <strong>Performance:</strong><br>
+    <strong id="labelPerformance">Performance:</strong><br>
     <div id="priceNow" style="margin-bottom: 0.5rem;"></div>
     <div id="performanceData">
       <div id="perf_1h"></div>
@@ -60,29 +42,29 @@
   </div>
 
   <div class="section block">
-    <h3>Risikomanagement</h3>
-    <label>Entry-Preis: <input type="number" id="entryPrice" /></label>
-    <label>Kapital (USDT): <input type="number" id="capital" /></label>
-    <label>Risiko %: <input type="number" id="riskPercent" /></label>
-    <label>Leverage: <input type="number" id="leverage" value="1" /></label>
-    <label>Richtung:
+    <h3 id="riskTitle">Risikomanagement</h3>
+    <label id="labelEntry">Entry-Preis: <input type="number" id="entryPrice" /></label>
+    <label id="labelCapital">Kapital (USDT): <input type="number" id="capital" /></label>
+    <label id="labelRisk">Risiko %: <input type="number" id="riskPercent" /></label>
+    <label id="labelLeverage">Leverage: <input type="number" id="leverage" value="1" /></label>
+    <label id="labelDirection">Richtung:
       <select id="direction">
-        <option value="Long">Long</option>
-        <option value="Short">Short</option>
+        <option value="Long" id="optLong">Long</option>
+        <option value="Short" id="optShort">Short</option>
       </select>
     </label>
-    <button onclick="calculateRisk()">Berechnen</button>
+    <button onclick="calculateRisk()" id="calcBtn">Berechnen</button>
     <div class="results">
-      <span>Risiko Betrag: <strong id="riskAmount"></strong></span>
-      <span>Position (USDT): <strong id="positionSize"></strong></span>
-      <span>Kaufmenge: <strong id="coinAmount"></strong></span>
-      <span>Stop-Loss Preis: <strong id="stopLoss"></strong></span>
-      <span>SL-Abstand zum Entry (%): <strong id="slDistance"></strong></span>
+      <span id="resRisk">Risiko Betrag: <strong id="riskAmount"></strong></span>
+      <span id="resPosition">Position (USDT): <strong id="positionSize"></strong></span>
+      <span id="resAmount">Kaufmenge: <strong id="coinAmount"></strong></span>
+      <span id="resSL">Stop-Loss Preis: <strong id="stopLoss"></strong></span>
+      <span id="resSLDist">SL-Abstand zum Entry (%): <strong id="slDistance"></strong></span>
     </div>
   </div>
 
   <div class="section">
-    <h3>BingX Futures</h3>
+    <h3 id="labelChart">BingX Futures</h3>
     <iframe id="bingxChart"></iframe>
   </div>
 
@@ -96,6 +78,20 @@
   </div>
 
   <script>
+    const translations = {
+      de: { title: "Krypto Risikomanagement Tool", labelSymbol: "Wähle Coin:", labelPerformance: "Performance:", riskTitle: "Risikomanagement", labelEntry: "Entry-Preis:", labelCapital: "Kapital (USDT):", labelRisk: "Risiko %:", labelLeverage: "Leverage:", labelDirection: "Richtung:", optLong: "Long", optShort: "Short", calcBtn: "Berechnen", resRisk: "Risiko Betrag:", resPosition: "Position (USDT):", resAmount: "Kaufmenge:", resSL: "Stop-Loss Preis:", resSLDist: "SL-Abstand zum Entry (%):", labelChart: "BingX Futures" },
+      en: { title: "Crypto Risk Management Tool", labelSymbol: "Choose Coin:", labelPerformance: "Performance:", riskTitle: "Risk Management", labelEntry: "Entry Price:", labelCapital: "Capital (USDT):", labelRisk: "Risk %:", labelLeverage: "Leverage:", labelDirection: "Direction:", optLong: "Long", optShort: "Short", calcBtn: "Calculate", resRisk: "Risk Amount:", resPosition: "Position (USDT):", resAmount: "Coin Amount:", resSL: "Stop-Loss Price:", resSLDist: "SL Distance from Entry (%):", labelChart: "BingX Futures" },
+      tr: { title: "Kripto Risk Yönetim Aracı", labelSymbol: "Coin Seç:", labelPerformance: "Performans:", riskTitle: "Risk Yönetimi", labelEntry: "Giriş Fiyatı:", labelCapital: "Sermaye (USDT):", labelRisk: "Risk %:", labelLeverage: "Kaldıraç:", labelDirection: "Yön:", optLong: "Uzun", optShort: "Kısa", calcBtn: "Hesapla", resRisk: "Risk Tutarı:", resPosition: "Pozisyon (USDT):", resAmount: "Alım Miktarı:", resSL: "Zarar Durdur Fiyatı:", resSLDist: "Girişe Uzaklık (%):", labelChart: "BingX Vadeli" }
+    };
+
+    function switchLang(lang) {
+      const t = translations[lang];
+      for (const key in t) {
+        const el = document.getElementById(key);
+        if (el) el.innerText = t[key];
+      }
+    }
+
     function updatePerformance(id, value, label) {
       const el = document.getElementById(id);
       const percent = parseFloat(value);
@@ -114,19 +110,15 @@
         const res = await fetch(url);
         const data = await res.json();
         logoEl.src = data.image.thumb;
-
         const price = data.market_data.current_price.usd;
         document.getElementById("priceNow").innerHTML = `<strong>Aktueller Preis:</strong> $${price.toFixed(2)}`;
-
         updatePerformance("perf_1h", data.market_data.price_change_percentage_1h_in_currency.usd || 0, '1 Stunde');
         updatePerformance("perf_24h", data.market_data.price_change_percentage_24h_in_currency.usd || 0, '24 Stunden');
         updatePerformance("perf_7d", data.market_data.price_change_percentage_7d_in_currency.usd || 0, '7 Tage');
         updatePerformance("perf_14d", data.market_data.price_change_percentage_14d_in_currency?.usd || 0, '14 Tage');
         updatePerformance("perf_30d", data.market_data.price_change_percentage_30d_in_currency.usd || 0, '1 Monat');
         updatePerformance("perf_1y", data.market_data.price_change_percentage_1y_in_currency.usd || 0, '1 Jahr');
-
-        document.getElementById("bingxChart").src =
-          `https://www.tradingview.com/widgetembed/?symbol=BINGX:${sel.value}.P&interval=60&theme=dark&style=1&locale=de`;
+        document.getElementById("bingxChart").src = `https://www.tradingview.com/widgetembed/?symbol=BINGX:${sel.value}.P&interval=60&theme=dark&style=1&locale=de`;
       } catch (err) {
         console.error("Fehler beim Laden der Daten:", err);
       }
